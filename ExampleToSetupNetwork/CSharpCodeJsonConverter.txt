@@ -1,0 +1,27 @@
+    class Neuron
+    {
+        public float Value { get; set; }
+
+        public float Bias { get; set; }
+
+        public List<Weight> Weights { get; set; }
+
+        public int Layer { get; private set; }
+
+        public Neuron()
+        {
+          this.Value = 0f; this.Bias = 0.3f; this.Weights = new List<Weight>(); 
+          this.Weights.Add(new Weight());
+          this.Layer = 0;
+        }
+    }
+
+    class Weight
+    {
+        public float ValueWeight { get; set; }
+        public Neuron NeuronBefore { get; set; }
+
+        public Weight()
+        {
+        }
+    }
