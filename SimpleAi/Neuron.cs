@@ -85,11 +85,12 @@ namespace SimpleAi
             CurrentIdealValue = CurrentIdealValue / NeuronsAfter;
             NeuronsAfter = 0;
 
-            float differenceIdealValue = (float)Math.Pow(CurrentIdealValue - Value, 2);
-            for(int i = 0; i < Weights.Count; i++)
+            float differenceIdealValue = Math.Abs(CurrentIdealValue - Value) * (CurrentIdealValue - Value);
+            for (int i = 0; i < Weights.Count; i++)
             {
                 Weights[i].ValueWeight += differenceIdealValue * Weights[i].ValueWeight * Weights[i].NeuronBefore.Value * learingRateCurrent;
                 Weights[i].NeuronBefore.CurrentIdealValue += differenceIdealValue * Weights[i].ValueWeight;
+                Weights[i].NeuronBefore.NeuronsAfter += 1;
             }
         }
     }

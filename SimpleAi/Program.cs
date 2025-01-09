@@ -12,27 +12,30 @@ namespace SimpleAi
         }
     }
 
-    class Run
+    class RunProduct
+    {
+
+    }
+
+    class RunLearing
     {
         public static List<List<Neuron>> Network = new();
         private int OutputLayerIndex;
 
-        private void RunManagerWithBackpropagation()
+        private void RunManager()
         {
-            for (int i = 0; i <= 3; i++)
+            float relationLearningrateStartEnd = Settings.LearingRateStart - Settings.LearingRateEnd / Settings.Rounds;
+            for (int i = 0; i < Settings.Rounds; i++)
             {
-                List<float> correctOutput = GenerateData(i);
+                GenerateData(i);
                 Forwardpropagation();
                 OutputResult(i);
+                Backpropagation(Settings.LearingRateStart - relationLearningrateStartEnd * i);
             }
         }
 
-        private List<float> GenerateData(int round)
+        private void GenerateData(int round)
         {
-            List<float> correctOuput;
-            Random rnd = new Random();
-            int dataSet = rnd.Next(0, 5);
-
             //01
             //23
             if (round % 4 == 0)
@@ -40,43 +43,53 @@ namespace SimpleAi
                 //xx
                 //00
                 Network[0][0].Value = 1;
+                Network[0][0].CurrentIdealValue = 1;
                 Network[0][1].Value = 1;
+                Network[0][1].CurrentIdealValue = 0;
                 Network[0][2].Value = 0;
+                Network[0][2].CurrentIdealValue = 0;
                 Network[0][3].Value = 0;
-                correctOuput = [1, 0, 0, 0];
+                Network[0][3].CurrentIdealValue = 0;
             }
             else if (round % 4 == 1)
             {
                 //00
                 //xx
                 Network[0][0].Value = 0;
+                Network[0][0].CurrentIdealValue = 0;
                 Network[0][1].Value = 0;
+                Network[0][1].CurrentIdealValue = 1;
                 Network[0][2].Value = 1;
+                Network[0][2].CurrentIdealValue = 0;
                 Network[0][3].Value = 1;
-                correctOuput = [0, 1, 0, 0];
+                Network[0][3].CurrentIdealValue = 0;
             }
             else if (round % 4 == 2)
             {
                 //x0
                 //x0
                 Network[0][0].Value = 1;
+                Network[0][0].CurrentIdealValue = 0;
                 Network[0][1].Value = 0;
+                Network[0][1].CurrentIdealValue = 0;
                 Network[0][2].Value = 1;
+                Network[0][2].CurrentIdealValue = 1;
                 Network[0][3].Value = 0;
-                correctOuput = [0, 0, 1, 0];
+                Network[0][3].CurrentIdealValue = 0;
             }
             else
             {
                 //x0
                 //0x
                 Network[0][0].Value = 1;
+                Network[0][0].CurrentIdealValue = 0;
                 Network[0][1].Value = 0;
+                Network[0][1].CurrentIdealValue = 0;
                 Network[0][2].Value = 0;
+                Network[0][2].CurrentIdealValue = 0;
                 Network[0][3].Value = 1;
-                correctOuput = [0, 0, 0, 1];
+                Network[0][3].CurrentIdealValue = 1;
             }
-
-            return correctOuput;
         }
 
         private void Forwardpropagation()
@@ -97,6 +110,11 @@ namespace SimpleAi
             {
                 Console.WriteLine("Neuron " + i + " : " + Network[OutputLayerIndex][i].Value);
             }
+        }
+
+        private void Backpropagation(float learingRateCurrent)
+        {
+
         }
     }
 }
