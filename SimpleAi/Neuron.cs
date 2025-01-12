@@ -18,7 +18,7 @@ namespace SimpleAi
         /// The number of neurons after this one.
         /// This number is only used in the Backpropagation process.
         /// </summary>
-        public int NeuronsAfter { get; set; } = 0;
+        public int NeuronsAfterCount { get; set; } = 0;
 
         /// <summary>
         /// This is connection to the neurons before this one, 
@@ -38,6 +38,11 @@ namespace SimpleAi
         {
             Bias = 0;
             Weights = weights;
+        }
+
+        public Neuron(int layer)
+        {
+            Layer = layer;
         }
 
         private void Relu()
@@ -82,16 +87,22 @@ namespace SimpleAi
 
         public void CalculateChangeWeight(float learingRateCurrent)
         {
-            CurrentIdealValue = CurrentIdealValue / NeuronsAfter;
-            NeuronsAfter = 0;
+            CurrentIdealValue = CurrentIdealValue / NeuronsAfterCount;
+            NeuronsAfterCount = 0;
 
             float differenceIdealValue = Math.Abs(CurrentIdealValue - Value) * (CurrentIdealValue - Value);
+            float avgNeuronBeforeValue = 0;
             for (int i = 0; i < Weights.Count; i++)
             {
-                Weights[i].ValueWeight += differenceIdealValue * Weights[i].ValueWeight * Weights[i].NeuronBefore.Value * learingRateCurrent;
+                Weights[i].ValueWeight += Weights[i].ValueWeight * differenceIdealValue * Weights[i].NeuronBefore.Value * learingRateCurrent;
+                
+                avgNeuronBeforeValue += Weights[i].NeuronBefore.Value;  
+                
                 Weights[i].NeuronBefore.CurrentIdealValue += differenceIdealValue * Weights[i].ValueWeight;
-                Weights[i].NeuronBefore.NeuronsAfter += 1;
+                Weights[i].NeuronBefore.NeuronsAfterCount += 1;
             }
+            avgNeuronBeforeValue /= Weights.Count;
+            Bias += Bias * differenceIdealValue * avgNeuronBeforeValue * learingRateCurrent;
         }
     }
 

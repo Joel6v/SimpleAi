@@ -8,15 +8,18 @@ namespace SimpleAi
 {
     class Settings
     {
-        public const bool UseBias = false;
         public const float MaxSizeBias = 1.0f;
         public const float RangeForWeightsGenerate = 1.2f;
         public const float LearingRateStart = 0.1f;
         public const float LearingRateEnd = 0.01f;
+        /// <summary>
+        /// A round is a single intervention through the process from a data set.
+        /// </summary>
         public const int Rounds = 4;
 
         public const string FolderNetwork = "";
-        public const string FileCurrentNetwork = "";
-
+        public const string FileCurrentNetworkLoad = ""; //The master file name
+        public const bool UseSameFile = true;
+        public const string FileCurrentNetworkSave = "";
     }
 }
