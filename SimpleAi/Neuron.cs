@@ -43,6 +43,7 @@ namespace SimpleAi
         public Neuron(int layer)
         {
             Layer = layer;
+            Weights = new();
         }
 
         private void Relu()

@@ -23,7 +23,8 @@
 
         public void RunManager()
         {
-            Network = FileHandler.LoadNetwork();
+            //Network = FileHandler.LoadNetwork();
+            Network = FileHandler.InputConsoleNetwork();
 
             float relationLearningrateStartEnd = (Settings.LearingRateStart - Settings.LearingRateEnd) / Settings.Rounds;
             for (int i = 0; i < Settings.Rounds; i++)

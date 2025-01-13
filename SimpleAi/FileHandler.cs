@@ -132,6 +132,73 @@ namespace SimpleAi
                 return new XmlElementWeight(idSource, idTarget, startIndexElement);
             }
         }
+
+        public static List<List<Neuron>> InputConsoleNetwork()
+        {
+            List<List<Neuron>> network = new();
+            while (true) 
+            {
+                Console.WriteLine("Enter Network Architecture");
+                Console.WriteLine();
+
+                Console.Write("Layer Amount: ");
+                int amountLayer;
+                if (!int.TryParse(Console.ReadLine(), out amountLayer)) 
+                {
+                    Console.WriteLine("Error: Input in wrong format");
+                    continue;
+                }
+
+                for (int currentLayer = 0; currentLayer < amountLayer; currentLayer++)
+                {
+                    Console.WriteLine($"Neurons Amount in Layer {currentLayer}: ");
+                    int amountNeurons;
+                    if (!int.TryParse(Console.ReadLine(), out amountNeurons))
+                    {
+                        Console.WriteLine("Error: Input in wrong format");
+                        currentLayer--;
+                        continue;
+                    }
+
+                    List<Neuron> neuronsListLayer = new();
+                    Neuron neuronSingle = new Neuron(currentLayer);
+                    for(int i = 0; i < amountNeurons; i++)
+                    {
+                        neuronsListLayer.Add(neuronSingle);
+                    }
+
+                    network.Add(neuronsListLayer);
+                }
+
+                for (int currentLayer = 1; currentLayer < amountLayer; currentLayer++)
+                {
+                    for(int currentNeuron = 0; currentNeuron < network[currentLayer].Count; currentNeuron++)
+                    {
+                        Console.WriteLine("Current Layer: " + currentLayer);
+                        Console.WriteLine("Weights from Neuron :" + currentLayer);
+                        Console.WriteLine("Format: 2;3;4;6;");
+                        string input = Console.ReadLine();
+                        string[] inputSplited = input.Split(';');
+                        try
+                        {
+                            for (int i = 0; i < inputSplited.Length; i++)
+                            {
+                                network[currentLayer][currentNeuron].Weights.Add(new Weight(network[currentNeuron - 1][Convert.ToInt32(inputSplited[i])]));
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            currentNeuron--;
+                            continue;
+                        }
+                    }
+                }
+
+                break;
+            }
+
+            return network;
+        }
     }
 
     class XmlElementNeuron
