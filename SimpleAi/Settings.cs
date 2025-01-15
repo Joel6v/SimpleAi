@@ -15,10 +15,13 @@ namespace SimpleAi
         /// <summary>
         /// A round is a single intervention through the process from a data set.
         /// </summary>
-        public const int Rounds = 4;
+        public const int Rounds = 24;
 
-        public const string FolderNetwork = "";
-        public const string FileCurrentNetworkLoad = ""; //The master file name
+        public static string FolderNetwork = AppContext.BaseDirectory + "\\Networks\\";
+        /// <summary>
+        /// This is the main file, if the for "UseSameFile" is true. It must be a ".json" file. The FileHandler can open od create this file.
+        /// </summary>
+        public const string FileCurrentNetworkLoad = "Test.json";
         public const bool UseSameFile = true;
         public const string FileCurrentNetworkSave = "";
     }
