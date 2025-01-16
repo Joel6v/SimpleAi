@@ -23,10 +23,10 @@
             float relationLearningrateStartEnd = (Settings.LearingRateStart - Settings.LearingRateEnd) / Settings.Rounds;
             for (int i = 0; i < Settings.Rounds; i++)
             {
-                Training.GenerateData(Network, i);
+                Training.GenerateData(ref Network, i);
                 Forwardpropagation();
                 Training.OutputResult(Network ,i);
-                Training.Backpropagation(Network ,Settings.LearingRateStart - relationLearningrateStartEnd * i);
+                Training.Backpropagation(ref Network ,Settings.LearingRateStart - relationLearningrateStartEnd * i);
             }
 
             //FileHandler.SaveNetwork(Network);

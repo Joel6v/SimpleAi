@@ -10,8 +10,8 @@ namespace SimpleAi
     {
         public const float MaxSizeBias = 1.0f;
         public const float RangeForWeightsGenerate = 1.2f;
-        public const float LearingRateStart = 0.1f;
-        public const float LearingRateEnd = 0.01f;
+        public const float LearingRateStart = 1f;
+        public const float LearingRateEnd = 0.1f;
         /// <summary>
         /// A round is a single intervention through the process from a data set.
         /// </summary>

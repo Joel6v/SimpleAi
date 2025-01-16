@@ -163,9 +163,10 @@ namespace SimpleAi
                     }
 
                     List<Neuron> neuronsListLayer = new();
-                    Neuron neuronSingle = new Neuron(currentLayer);
+                    Neuron neuronSingle;
                     for(int i = 0; i < amountNeurons; i++)
                     {
+                        neuronSingle = new Neuron(currentLayer); //This must be splitted up otherwise the single same object will be saved and share its values
                         neuronsListLayer.Add(neuronSingle);
                     }
 
@@ -187,7 +188,8 @@ namespace SimpleAi
                         {
                             for (int i = 0; i < inputSplited.Count(); i++)
                             {
-                                network[currentLayer][currentNeuron].Weights.Add(new Weight(network[currentLayer - 1][Convert.ToInt32(inputSplited[i])]));
+                                int toNeuron = Convert.ToInt32(inputSplited[i]);
+                                network[currentLayer][currentNeuron].Weights.Add(new Weight(network[currentLayer - 1][toNeuron]));
                             }
                         }
                         catch (Exception ex)

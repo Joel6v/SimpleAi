@@ -8,7 +8,7 @@ namespace SimpleAi
 {
     internal class Training
     {
-        public static void GenerateData(List<List<Neuron>> network, int round)
+        public static void GenerateData(ref List<List<Neuron>> network, int round)
         {
             int outputLayerIndex = network.Count - 1;
             //01
@@ -67,7 +67,7 @@ namespace SimpleAi
             }
         }
 
-        public static void Backpropagation(List<List<Neuron>> network, float learingRateCurrent)
+        public static void Backpropagation(ref List<List<Neuron>> network, float learingRateCurrent)
         {
             for (int layer = network.Count - 1; layer >= 1; layer--)
             {
@@ -86,9 +86,9 @@ namespace SimpleAi
             int outputLayerIndex = network.Count - 1;
             for (int i = 0; i < network[outputLayerIndex].Count; i++)
             {
-                Console.WriteLine("Neuron Number: " + i);
-                Console.WriteLine("Neuron Ideal Value: " + network[outputLayerIndex][i].CurrentIdealValue);
-                Console.WriteLine("Neuron Is Value: " + network[outputLayerIndex][i].Value);
+                Console.WriteLine("Neuron Number:       " + i);
+                Console.WriteLine("Neuron Ideal Value:  " + network[outputLayerIndex][i].CurrentIdealValue);
+                Console.WriteLine("Neuron Is Value:     " + network[outputLayerIndex][i].Value);
                 Console.WriteLine();
             }
         }

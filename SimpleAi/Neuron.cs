@@ -88,7 +88,7 @@ namespace SimpleAi
 
         public void CalculateChangeWeight(float learingRateCurrent)
         {
-            CurrentIdealValue = CurrentIdealValue / NeuronsAfterCount;
+            CurrentIdealValue = (NeuronsAfterCount != 0) ? CurrentIdealValue / NeuronsAfterCount : CurrentIdealValue;
             NeuronsAfterCount = 0;
 
             float differenceIdealValue = Math.Abs(CurrentIdealValue - Value) * (CurrentIdealValue - Value);
