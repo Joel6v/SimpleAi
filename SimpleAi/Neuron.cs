@@ -48,7 +48,7 @@ namespace SimpleAi
 
         private void Relu()
         {
-            Value = Value - Bias;
+            Value = Value + Bias;
             if (Value < 0)
             {
                 Value = 0;
@@ -95,10 +95,13 @@ namespace SimpleAi
             float avgNeuronBeforeValue = 0;
             for (int i = 0; i < Weights.Count; i++)
             {
+                //For the Weights
                 Weights[i].ValueWeight += Weights[i].ValueWeight * differenceIdealValue * Weights[i].NeuronBefore.Value * learingRateCurrent;
                 
+                //For the Bias
                 avgNeuronBeforeValue += Weights[i].NeuronBefore.Value;  
                 
+                //Neuron before this one
                 Weights[i].NeuronBefore.CurrentIdealValue += differenceIdealValue * Weights[i].ValueWeight;
                 Weights[i].NeuronBefore.NeuronsAfterCount += 1;
             }
@@ -123,8 +126,15 @@ namespace SimpleAi
 
         public Weight(Neuron neuronBefore)
         {
-            ValueWeight = 0;
+            GenerateValue();
             NeuronBefore = neuronBefore;
+        }
+
+        private void GenerateValue()
+        {
+            Random rnd = new Random();
+            float halfValue = (float)rnd.NextDouble() * Settings.RangeForWeightsGenerate / 2;
+            ValueWeight = (rnd.Next(0, 2) == 0) ? -1*halfValue : halfValue;
         }
     }
 }

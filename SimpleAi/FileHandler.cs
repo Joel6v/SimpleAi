@@ -177,26 +177,43 @@ namespace SimpleAi
                 {
                     Console.WriteLine($"Weight from current layer {currentLayer} to layer before {currentLayer - 1}");
                     Console.WriteLine("Enter in this format: 0;1;2;3");
+                    Console.WriteLine("Or to connect all enter: a");
 
                     for (int currentNeuron = 0; currentNeuron < network[currentLayer].Count; currentNeuron++)
                     {
                         Console.WriteLine($"Weights from neuron index {currentNeuron}");
                         Console.Write("Input: ");
                         string input = Console.ReadLine();
-                        string[] inputSplited = input.Split(';');
-                        try
+
+                        if (string.IsNullOrEmpty(input))
                         {
-                            for (int i = 0; i < inputSplited.Count(); i++)
-                            {
-                                int toNeuron = Convert.ToInt32(inputSplited[i]);
-                                network[currentLayer][currentNeuron].Weights.Add(new Weight(network[currentLayer - 1][toNeuron]));
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex.Message);
+                            Console.WriteLine("Error: Input in wrong format");
                             currentNeuron--;
                             continue;
+                        }else if(input.ToLower() == "a")
+                        {
+                            for(int i = 0; i < network[currentLayer - 1].Count; i++)
+                            {
+                                network[currentLayer][currentNeuron].Weights.Add(new Weight(network[currentLayer - 1][i]));
+                            }
+                        }
+                        else
+                        {
+                            string[] inputSplited = input.Split(';');
+                            try
+                            {
+                                for (int i = 0; i < inputSplited.Count(); i++)
+                                {
+                                    int toNeuron = Convert.ToInt32(inputSplited[i]);
+                                    network[currentLayer][currentNeuron].Weights.Add(new Weight(network[currentLayer - 1][toNeuron]));
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                                currentNeuron--;
+                                continue;
+                            }
                         }
                     }
                 }

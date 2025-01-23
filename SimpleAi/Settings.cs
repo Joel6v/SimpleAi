@@ -12,10 +12,11 @@ namespace SimpleAi
         public const float RangeForWeightsGenerate = 1.2f;
         public const float LearingRateStart = 1f;
         public const float LearingRateEnd = 0.1f;
+        public const float LearingRateDecreaseExponent = 1f;
         /// <summary>
         /// A round is a single intervention through the process from a data set.
         /// </summary>
-        public const int Rounds = 24;
+        public const int Rounds = 80;
 
         public static string FolderNetwork = AppContext.BaseDirectory + "\\Networks\\";
         /// <summary>

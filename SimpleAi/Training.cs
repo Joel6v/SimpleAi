@@ -87,8 +87,10 @@ namespace SimpleAi
             for (int i = 0; i < network[outputLayerIndex].Count; i++)
             {
                 Console.WriteLine("Neuron Number:       " + i);
+                Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("Neuron Ideal Value:  " + network[outputLayerIndex][i].CurrentIdealValue);
                 Console.WriteLine("Neuron Is Value:     " + network[outputLayerIndex][i].Value);
+                Console.ResetColor();
                 Console.WriteLine();
             }
         }
