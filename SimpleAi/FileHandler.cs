@@ -10,11 +10,11 @@ using System.Xml.Linq;
 
 namespace SimpleAi
 {
-    internal class FileHandler
+    internal static class FileHandler
     {
         public static void SaveNetwork(List<List<Neuron>> network)
         {
-            string path = (Settings.UseSameFile) ? Settings.FolderNetwork + Settings.FileCurrentNetworkLoad : Settings.FolderNetwork + Settings.FileCurrentNetworkSave;
+            string path = (Settings.FileCurrentNetworkSave == "") ? Settings.FolderNetwork + Settings.FileCurrentNetworkLoad : Settings.FolderNetwork + Settings.FileCurrentNetworkSave;
 
             string json = JsonSerializer.Serialize(network);
             using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite))
@@ -222,6 +222,36 @@ namespace SimpleAi
             }
 
             return network;
+        }
+    }
+
+    internal class JsonElementNeuron
+    {
+        public long Id { get; set; }
+        
+        public float Value { get; set; }
+
+        public float Bias { get; set; }
+        
+        public int Layer { get; set; }
+
+        public JsonElementNeuron(Neuron neuron)
+        {
+            
+        }
+    }
+    
+    internal class JsonElementWeight
+    {
+        public long IdSource { get; set; }
+        
+        public long IdTarget { get; set; }
+        
+        public float ValueWeight { get; set; }
+
+        public JsonElementWeight(Weight weight)
+        {
+            
         }
     }
 

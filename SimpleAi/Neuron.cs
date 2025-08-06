@@ -58,6 +58,10 @@ namespace SimpleAi
                 Value = 1;
             }
         }
+        private void Sigmoid() //Is not so fast as the Relu, but it is more accurate.
+        {
+            Value = 1 / (1 + (float)Math.Exp(-Value));
+        }
 
         /// <summary>
         /// To update the Layer value from the neuron. 
@@ -82,6 +86,8 @@ namespace SimpleAi
             {
                 Value += Weights[i].ValueWeight * Weights[i].NeuronBefore.Value;
             }
+            
+            Value += Bias;
 
             Relu();
         }
