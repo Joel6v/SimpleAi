@@ -1,146 +1,175 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace SimpleAi;
 
-namespace SimpleAi
+public class Neuron
 {
-    class Neuron
+    public string Id { get; set; }
+
+    public double Value { get; set; } = 0;
+
+    public double Error { get; private set; } = 0;
+    
+    public double Bias { get; private set; }
+    
+    public List<Weight> WeightsBefore { get; private set; }
+    
+    public List<Weight> WeightsAfter { get; private set; }
+    
+    public int Layer { get; set; }
+    
+    public Neuron(string id, double bias, List<Weight> weightsBefore, List<Weight> weightsAfter, int layer)
     {
-        public float Value { get; set; }
+        Id = id;
+        Bias = bias;
+        WeightsBefore = weightsBefore;
+        WeightsAfter = weightsAfter;
+        Layer = layer;
+    }
 
-        public float Bias { get; set; }
+    public Neuron()
+    {
+        Id = Guid.NewGuid().ToString();
+        Bias = new Random().NextDouble() * 2 - 1;
+    }
 
-        public float CurrentIdealValue { get; set; }
+    public void SetWeights(List<Weight> weightsBefore, List<Weight> weightsAfter, List<Neuron> network)
+    {
+        WeightsBefore = weightsBefore;
+        WeightsAfter = weightsAfter;
+        CalculateLayer(network);
+    }
+    
+    private void Relu()
+    {
+        Value = Math.Max(0, Value);
+    }
+    
+    private void Sigmoid() //Is not so fast as the Relu, but it is more accurate.
+    {
+        Value = 1 / (1 + Math.Exp(-Value));
+    }
 
-        /// <summary>
-        /// The number of neurons after this one.
-        /// This number is only used in the Backpropagation process.
-        /// </summary>
-        public int NeuronsAfterCount { get; set; } = 0;
-
-        /// <summary>
-        /// This is connection to the neurons before this one, 
-        /// to determine the value of this neuron in the Forwardpropagation.
-        /// </summary>
-        public List<Weight> Weights { get; set; }
-
-        public int Layer { get; private set; }
-
-        public Neuron(float bias, List<Weight> weights)
+    public void CalculateOutput()
+    {
+        Value = Bias;
+        for (int i = 0; i < WeightsBefore.Count; i++)
         {
-            Bias = bias;
-            Weights = weights;
+            Value += WeightsBefore[i].Value * WeightsBefore[i].NeuronBefore.Value;
         }
+        Sigmoid();
+    }
 
-        public Neuron(List<Weight> weights)
+    private void CalculateNewWeightsBias(double learningRate)
+    {
+        double gradient = Error * learningRate * Value * (1 - Value); //The biggest result at Value = 0.5
+        Bias += gradient;
+        for (int i = 0; i < WeightsBefore.Count; i++)
         {
-            Bias = 0;
-            Weights = weights;
-        }
-
-        public Neuron(int layer)
-        {
-            Layer = layer;
-            Weights = new();
-        }
-
-        private void Relu()
-        {
-            Value = Value + Bias;
-            if (Value < 0)
-            {
-                Value = 0;
-            }
-            else if (Value > 1)
-            {
-                Value = 1;
-            }
-        }
-        private void Sigmoid() //Is not so fast as the Relu, but it is more accurate.
-        {
-            Value = 1 / (1 + (float)Math.Exp(-Value));
-        }
-
-        /// <summary>
-        /// To update the Layer value from the neuron. 
-        /// Only use it if this neuron is the only one for which the value needs to be updated, otherwise the calculation will be incorrect.
-        /// </summary>
-        public void CalculateLayerSingleUpdate()
-        {
-            if (Weights == null)
-            {
-                Layer = 0;
-            }
-            else
-            {
-                Layer = ((List<Weight>)Weights.OrderBy(weight => weight.NeuronBefore.Layer))[Weights.Count - 1].NeuronBefore.Layer;
-            }
-        }
-
-        public void CalculateValue()
-        {
-            Value = 0;
-            for (int i = 0; i < Weights.Count; i++)
-            {
-                Value += Weights[i].ValueWeight * Weights[i].NeuronBefore.Value;
-            }
-            
-            Value += Bias;
-
-            Relu();
-        }
-
-        public void CalculateChangeWeight(float learingRateCurrent)
-        {
-            CurrentIdealValue = (NeuronsAfterCount != 0) ? CurrentIdealValue / NeuronsAfterCount : CurrentIdealValue;
-            NeuronsAfterCount = 0;
-
-            float differenceIdealValue = Math.Abs(CurrentIdealValue - Value) * (CurrentIdealValue - Value);
-            float avgNeuronBeforeValue = 0;
-            for (int i = 0; i < Weights.Count; i++)
-            {
-                //For the Weights
-                Weights[i].ValueWeight += Weights[i].ValueWeight * differenceIdealValue * Weights[i].NeuronBefore.Value * learingRateCurrent;
-                
-                //For the Bias
-                avgNeuronBeforeValue += Weights[i].NeuronBefore.Value;  
-                
-                //Neuron before this one
-                Weights[i].NeuronBefore.CurrentIdealValue += differenceIdealValue * Weights[i].ValueWeight;
-                Weights[i].NeuronBefore.NeuronsAfterCount += 1;
-            }
-            avgNeuronBeforeValue /= Weights.Count;
-            Bias += Bias * differenceIdealValue * avgNeuronBeforeValue * learingRateCurrent;
+            WeightsBefore[i].Value += gradient * WeightsBefore[i].NeuronBefore.Value;
         }
     }
 
-    class Weight
+    /// <summary>
+    /// Calculates the error of the value with the errors from the layers after (direction forward prop)
+    /// </summary>
+    public void Backpropagation(double learningRate)
     {
-        public float ValueWeight { get; set; }
-        /// <summary>
-        /// Here is a reference to the neuron before this one.
-        /// </summary>
-        public Neuron NeuronBefore { get; set; }
+        Error = 0;
 
-        public Weight(float valueWeight, Neuron neuronBefore)
+        for (int i = 0; i < WeightsAfter.Count; i++)
         {
-            ValueWeight = valueWeight;
-            NeuronBefore = neuronBefore;
+            Error += WeightsAfter[i].Value * WeightsAfter[i].NeuronAfter.Error;
+        }
+        
+        CalculateNewWeightsBias(learningRate);
+    }
+
+    /// <summary>
+    /// Calculates the error of the value with the target value
+    /// </summary>
+    /// <param name="targetValue"></param>
+    public void Backpropagation(double learningRate, double targetValue)
+    {
+        Error = targetValue - Value;
+        
+        CalculateNewWeightsBias(learningRate);
+    }
+
+    public void CalculateLayer(List<Neuron> network)
+    {
+        int higestLayerNeuronsBefore = 0;
+        for (int i = 0; i < WeightsBefore.Count; i++)
+        {
+            if (WeightsBefore[i].NeuronBefore.Layer > higestLayerNeuronsBefore)
+            {
+                higestLayerNeuronsBefore = WeightsBefore[i].NeuronBefore.Layer;
+            }
+        }
+        
+        int lowestLayerNeuronsAfter = 0;
+        for (int i = 0; i < WeightsAfter.Count; i++)
+        {
+            if (WeightsAfter[i].NeuronAfter.Layer < lowestLayerNeuronsAfter)
+            {
+                lowestLayerNeuronsAfter = WeightsAfter[i].NeuronAfter.Layer;
+            }
         }
 
-        public Weight(Neuron neuronBefore)
+        if (higestLayerNeuronsBefore >= lowestLayerNeuronsAfter -1)
         {
-            GenerateValue();
-            NeuronBefore = neuronBefore;
+            //Makes sure that all neurons will be updated
+            int layersToAdd = (lowestLayerNeuronsAfter - 2) - higestLayerNeuronsBefore;
+            for (int i = 0; i < network.Count; i++)
+            {
+                if (network[i].Layer == lowestLayerNeuronsAfter)
+                {
+                    for (int j = 0; j < network[i].WeightsAfter.Count; j++)
+                    {
+                        if (network[i].WeightsAfter[j].NeuronAfter == this)
+                        {
+                            network[i].AddLayer(layersToAdd);
+                        }
+                    }
+                }
+            }
         }
+        Layer = higestLayerNeuronsBefore + 1;
+    }
 
-        private void GenerateValue()
+    public void AddLayer(int layersToAdd)
+    {
+        for (int i = 0; i < WeightsAfter.Count; i++)
         {
-            Random rnd = new Random();
-            float halfValue = (float)rnd.NextDouble() * Settings.RangeForWeightsGenerate / 2;
-            ValueWeight = (rnd.Next(0, 2) == 0) ? -1*halfValue : halfValue;
+            if (WeightsAfter[i].NeuronAfter.Layer - Layer == 1)
+            {
+                WeightsAfter[i].NeuronAfter.AddLayer(layersToAdd);
+            }
         }
+        Layer += layersToAdd;
+    }
+}
+
+public class Weight
+{
+    public double Value { get; set; }
+    
+    /// <summary>
+    /// The neurons this Weight is connected to before its source neuron (direction forward prop)
+    /// </summary>
+    public Neuron NeuronBefore { get; set; }
+    
+    public Neuron NeuronAfter { get; set; }
+
+    public Weight(double value, Neuron neuronBefore, Neuron neuronAfter)
+    {
+        Value = value;
+        NeuronBefore = neuronBefore;
+        NeuronAfter = neuronAfter;
+    }
+    
+    public Weight(Neuron neuronBefore, Neuron neuronAfter)
+    {
+        Value = new Random().NextDouble() * 2 - 1;
+        NeuronBefore = neuronBefore;
+        NeuronAfter = neuronAfter;
     }
 }
