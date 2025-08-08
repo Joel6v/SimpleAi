@@ -14,6 +14,12 @@ public static class Settings
     
     public const string FileNetworkWeights = "Weights.json";
     
+    public static string FileData = "Data.json";
+    
+    public static string FileTarget = "Target.json";
+    
+    public static string FileResult = "Result.json";
+    
 
     public static void ConsoleInputSettings()
     {

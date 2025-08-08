@@ -1,0 +1,23 @@
+[
+  {
+    "Id": "input1",
+    "Bias": 0.5,
+    "Layer": 1,
+    "IdsWeightsBefore": [],
+    "IdsWeightsAfter": ["a1b2c3d4-e5f6-7890-abcd-ef1234567890"]
+  },
+  {
+    "Id": "input2",
+    "Bias": -0.5,
+    "Layer": 1,
+    "IdsWeightsBefore": ["b2c3d4e5-f678-90ab-cdef-234567890abc"],
+    "IdsWeightsAfter": []
+  },
+  {
+    "Id": "output1",
+    "Bias": 0.5,
+    "Layer": 2,
+    "IdsWeightsBefore": ["a1b2c3d4-e5f6-7890-abcd-ef1234567890","b2c3d4e5-f678-90ab-cdef-234567890abc"],
+    "IdsWeightsAfter": []
+  }
+]

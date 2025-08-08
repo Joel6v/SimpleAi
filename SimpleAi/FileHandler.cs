@@ -186,91 +186,41 @@ namespace SimpleAi
             return neurons;
         }
 
-        public static List<Neuron> InputConsoleNetwork()
+        public static Dictionary<string, double> LoadDictionary(string path)
         {
-            List<Neuron> neurons = new();
-            while (true) 
+            path = Settings.FolderNetwork + path;
+            
+            string jsonString;
+            using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
-                Console.WriteLine("Enter Network Architecture");
-                Console.WriteLine();
-
-                Console.Write("Layer Amount (zero based): ");
-                if (!int.TryParse(Console.ReadLine(), out int amountLayer)) 
+                using (StreamReader sr = new StreamReader(fs))
                 {
-                    Console.WriteLine("Error: Input in wrong format");
-                    continue;
+                    jsonString = sr.ReadToEnd();
                 }
-
-                for (int currentLayer = 0; currentLayer <= amountLayer; currentLayer++)
-                {
-                    Console.Write($"Neurons Amount in Layer {currentLayer}: ");
-                    int amountNeurons;
-                    if (!int.TryParse(Console.ReadLine(), out amountNeurons))
-                    {
-                        Console.WriteLine("Error: Input in wrong format");
-                        currentLayer--;
-                        continue;
-                    }
-                    
-                    Neuron neuronSingle;
-                    for(int i = 0; i < amountNeurons; i++)
-                    {
-                        neuronSingle = new Neuron(); //This must be split up otherwise the single same object will be saved and share its values
-                        neurons.Add(neuronSingle);
-                        neurons[^1].Layer = currentLayer;
-                    }
-                }
-
-                for (int currentLayer = 0; currentLayer <= amountLayer -1; currentLayer++)
-                {
-                    Console.WriteLine($"Weight from current layer {currentLayer} to layer after {currentLayer + 1}");
-                    Console.WriteLine("Enter in this format: 0;1;2;3");
-                    Console.WriteLine("Or to connect all enter: a");
-
-                    for (int currentNeuron = 0; currentNeuron < neurons.Count; currentNeuron++)
-                    {
-                        if(neurons[currentNeuron].Layer != currentLayer) continue;
-                        Console.WriteLine($"Weights from neuron index {currentNeuron}:{neurons[currentNeuron].Id}");
-                        Console.Write("Input: ");
-                        string input = Console.ReadLine();
-
-                        if (string.IsNullOrEmpty(input))
-                        {
-                            Console.WriteLine("Error: Input in wrong format");
-                            currentNeuron--;
-                            continue;
-                        }else if(input.ToLower() == "a")
-                        {
-                            for(int i = 0; i < neurons.Count; i++)
-                            {
-                                neurons[currentNeuron].Weights.Add(new Weight(network[currentLayer - 1][i]));
-                            }
-                        }
-                        else
-                        {
-                            string[] inputSplited = input.Split(';');
-                            try
-                            {
-                                for (int i = 0; i < inputSplited.Count(); i++)
-                                {
-                                    int toNeuron = Convert.ToInt32(inputSplited[i]);
-                                    network[currentLayer][currentNeuron].Weights.Add(new Weight(network[currentLayer - 1][toNeuron]));
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine(ex.Message);
-                                currentNeuron--;
-                                continue;
-                            }
-                        }
-                    }
-                }
-
-                break;
             }
+            
+            if (string.IsNullOrEmpty(jsonString))
+            {
+                string errorMessage = "Json file is empty";
+                Console.WriteLine(errorMessage);
+                throw new Exception(errorMessage);
+            }
+            
+            return JsonSerializer.Deserialize<Dictionary<string, double>>(jsonString);
+        }
 
-            return network;
+        public static void SaveDictionary(Dictionary<string, double> dictionary, string path)
+        {
+            path = Settings.FolderNetwork + path;
+            
+            string jsonString = JsonSerializer.Serialize(dictionary);
+            using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            {
+                using (StreamWriter sw = new StreamWriter(fs))
+                {
+                    sw.Write(jsonString);
+                }
+            }
         }
     }
 
