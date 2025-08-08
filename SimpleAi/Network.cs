@@ -9,9 +9,14 @@ public class Network
         Create3dList(neurons);
     }
 
-    private List<Neuron> Create2dList()
+    public List<Neuron> Create2dList()
     {
-        
+        List<Neuron> neurons = new();
+        for (int i = 0; i < Neurons.Count; i++)
+        {
+            neurons.AddRange(Neurons[i]);
+        }
+        return neurons;
     }
 
     private void Create3dList(List<Neuron> neurons)
@@ -43,7 +48,7 @@ public class Network
         return result;
     }
 
-    public Dictionary<string, double> Run(double learningRate, Dictionary<string, double> data, Dictionary<string, double> target)
+    public Dictionary<string, double> RunTraining(Dictionary<string, double> data, Dictionary<string, double> target)
     {
         RunNetworkForwardProp(data);
         
@@ -55,18 +60,18 @@ public class Network
             {
                 if (outputNeurons[j].Id.Equals(target.ElementAt(i).Key))
                 {
-                    outputNeurons[j].Backpropagation(learningRate, target.ElementAt(i).Value);
+                    outputNeurons[j].Backpropagation(Settings.LearningRate, target.ElementAt(i).Value);
                     outputNeurons.RemoveAt(j);
                     j--;
                 }
             }
         }
         
-        for (int i = 0; i < Neurons.Count -1; i++)
+        for (int i = Neurons.Count - 2; i >= 1; i++)
         {
             for (int j = 0; j < Neurons[i].Count; j++)
             {
-                Neurons[i][j].Backpropagation(learningRate);
+                Neurons[i][j].Backpropagation(Settings.LearningRate);
             }
         }
         
@@ -95,11 +100,27 @@ public class Network
             }
         }
         
-        for (int i = 0; i < Neurons.Count; i++)
+        for (int i = 1; i < Neurons.Count; i++)
         {
             for (int j = 0; j < Neurons[i].Count; j++)
             {
                 Neurons[i][j].CalculateOutput();
+            }
+        }
+    }
+
+    private void RunNetworkForwardProp(Dictionary<string, double> data, int rounds)
+    {
+        RunNetworkForwardProp(data);
+
+        for (int i = 1; i < rounds; i++) //Starts at 1 because one round is already done at RunNetworkFor...
+        {
+            for (int j = 0; j < Neurons.Count; j++)
+            {
+                for (int k = 0; k < Neurons[j].Count; k++)
+                {
+                    Neurons[j][k].CalculateOutput();
+                }
             }
         }
     }

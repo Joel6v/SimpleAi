@@ -2,27 +2,30 @@
 
 public class Neuron
 {
-    public string Id { get; set; }
+    public string Id { get; private set; }
 
     public double Value { get; set; } = 0;
 
     public double Error { get; private set; } = 0;
     
     public double Bias { get; private set; }
+
+    public List<Weight> WeightsBefore { get; set; } = new List<Weight>();
     
-    public List<Weight> WeightsBefore { get; private set; }
-    
-    public List<Weight> WeightsAfter { get; private set; }
+    public List<Weight> WeightsAfter { get; set; } = new List<Weight>();
     
     public int Layer { get; set; }
     
-    public Neuron(string id, double bias, List<Weight> weightsBefore, List<Weight> weightsAfter, int layer)
+    public Neuron(string id, double bias)
     {
         Id = id;
         Bias = bias;
-        WeightsBefore = weightsBefore;
-        WeightsAfter = weightsAfter;
-        Layer = layer;
+    }
+
+    public Neuron(string id)
+    {
+        Id = id;
+        Bias = new Random().NextDouble() * 2 - 1;
     }
 
     public Neuron()
@@ -31,11 +34,11 @@ public class Neuron
         Bias = new Random().NextDouble() * 2 - 1;
     }
 
-    public void SetWeights(List<Weight> weightsBefore, List<Weight> weightsAfter, List<Neuron> network)
+    public void SetWeights(List<Weight> weightsBefore, List<Weight> weightsAfter)
     {
         WeightsBefore = weightsBefore;
         WeightsAfter = weightsAfter;
-        CalculateLayer(network);
+        //CalculateLayer(network);
     }
     
     private void Relu()
