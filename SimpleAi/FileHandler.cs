@@ -6,281 +6,344 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Text.Json;
 using System.Reflection.Emit;
+using System.Text.Json.Serialization;
 using System.Xml.Linq;
 
-namespace SimpleAi
+namespace SimpleAi.File;
+
+public static class FileHandler
 {
-    internal static class FileHandler
+    public static void SaveNetwork(Network network)
     {
-        public static void SaveNetwork(Network network)
+        List<Neuron> neurons = network.Create2dList();
+
+        List<JsonNeuron> jsonNeurons = new();
+        List<JsonWeight> jsonWeights = new();
+        Dictionary<Weight, JsonWeight> jsonWeightsBeforeDictionary = new();
+        Dictionary<Weight, JsonWeight> jsonWeightsAfterDictionary = new();
+        for (int i = 0; i < neurons.Count; i++)
         {
-            List<Neuron> neurons = network.Create2dList();
-
-            List<JsonNeuron> jsonNeurons = new();
-            List<JsonWeight> jsonWeights = new();
-            for (int i = 0; i < neurons.Count; i++)
+            List<JsonWeight> weightsBefore = new();
+            List<JsonWeight> weightsAfter = new();
+            
+            for (int j = 0; j < neurons[i].WeightsBefore.Count; j++)
             {
-                List<JsonWeight> weightsBefore = new();
-                List<JsonWeight> weightsAfter = new();
-                for (int j = 0; j < neurons[i].WeightsBefore.Count; j++)
+                if (jsonWeightsAfterDictionary.ContainsKey(neurons[i].WeightsBefore[j]))
                 {
-                    weightsBefore.Add(new JsonWeight(neurons[i].WeightsBefore[j]));
+                    weightsBefore.Add(jsonWeightsAfterDictionary[neurons[i].WeightsBefore[j]]);
+                    jsonWeightsAfterDictionary.Remove(neurons[i].WeightsBefore[j]); //Remove from the dictionary because it is already in the list
                 }
-                for (int j = 0; j < neurons[i].WeightsAfter.Count; j++)
+                else
                 {
-                    weightsAfter.Add(new JsonWeight(neurons[i].WeightsAfter[j]));
-                }
-                jsonNeurons.Add(new JsonNeuron(neurons[i], weightsBefore, weightsAfter));
-                jsonWeights.AddRange(weightsBefore);
-            }
-
-            string jsonStringNeurons = JsonSerializer.Serialize(jsonNeurons);
-            using (FileStream fs = new FileStream(Settings.FolderNetwork + Settings.FileNetworkNeurons, FileMode.OpenOrCreate, FileAccess.ReadWrite))
-            {
-                using (StreamWriter sw = new StreamWriter(fs))
-                {
-                    sw.Write(jsonStringNeurons);
+                    JsonWeight jsonWeight = new(neurons[i].WeightsBefore[j]);
+                    jsonWeightsBeforeDictionary.Add(neurons[i].WeightsBefore[j], jsonWeight);
+                    weightsBefore.Add(jsonWeight);
                 }
             }
             
-            string jsonStringWeights = JsonSerializer.Serialize(jsonWeights);
-            using (FileStream fs = new FileStream(Settings.FolderNetwork + Settings.FileNetworkWeights, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            for (int j = 0; j < neurons[i].WeightsAfter.Count; j++)
             {
-                using (StreamWriter sw = new StreamWriter(fs))
+                if (jsonWeightsBeforeDictionary.ContainsKey(neurons[i].WeightsAfter[j]))
                 {
-                    sw.Write(jsonStringWeights);
+                    weightsAfter.Add(jsonWeightsBeforeDictionary[neurons[i].WeightsAfter[j]]);
+                    jsonWeightsBeforeDictionary.Remove(neurons[i].WeightsAfter[j]);
                 }
+                else
+                {
+                    JsonWeight jsonWeight = new(neurons[i].WeightsAfter[j]);
+                    jsonWeightsAfterDictionary.Add(neurons[i].WeightsAfter[j], jsonWeight);
+                    weightsAfter.Add(jsonWeight);
+                }
+            }
+            
+            jsonNeurons.Add(new JsonNeuron(neurons[i], weightsBefore, weightsAfter));
+            jsonWeights.AddRange(weightsAfter);
+        }
+
+        string jsonStringNeurons = JsonSerializer.Serialize(jsonNeurons, Settings.FilePrintOptions);
+        using (FileStream fs = new FileStream(Settings.FolderNetwork + Settings.FileNetworkNeurons,
+                   FileMode.OpenOrCreate, FileAccess.ReadWrite))
+        {
+            using (StreamWriter sw = new StreamWriter(fs))
+            {
+                sw.Write(jsonStringNeurons);
             }
         }
 
-        public static List<Neuron> LoadNetwork()
+        string jsonStringWeights = JsonSerializer.Serialize(jsonWeights, Settings.FilePrintOptions);
+        using (FileStream fs = new FileStream(Settings.FolderNetwork + Settings.FileNetworkWeights,
+                   FileMode.OpenOrCreate, FileAccess.ReadWrite))
         {
-            string jsonStringNeurons;
-            using (FileStream fs = new FileStream(Settings.FolderNetwork + Settings.FileNetworkNeurons, FileMode.Open, FileAccess.Read))
+            using (StreamWriter sw = new StreamWriter(fs))
             {
-                using (StreamReader sr = new StreamReader(fs))
-                {
-                    jsonStringNeurons = sr.ReadToEnd();
-                }
+                sw.Write(jsonStringWeights);
             }
-            
-            string jsonStringWeights;
-            using (FileStream fs = new FileStream(Settings.FolderNetwork + Settings.FileNetworkWeights, FileMode.Open, FileAccess.Read))
+        }
+    }
+
+    public static List<Neuron> LoadNetwork()
+    {
+        string jsonStringNeurons;
+        using (FileStream fs = new FileStream(Settings.FolderNetwork + Settings.FileNetworkNeurons, FileMode.Open,
+                   FileAccess.Read))
+        {
+            using (StreamReader sr = new StreamReader(fs))
             {
-                using (StreamReader sr = new StreamReader(fs))
-                {
-                    jsonStringWeights = sr.ReadToEnd();
-                }
+                jsonStringNeurons = sr.ReadToEnd();
             }
+        }
 
-            if (string.IsNullOrEmpty(jsonStringNeurons) || string.IsNullOrEmpty(jsonStringWeights))
+        string jsonStringWeights;
+        using (FileStream fs = new FileStream(Settings.FolderNetwork + Settings.FileNetworkWeights, FileMode.Open,
+                   FileAccess.Read))
+        {
+            using (StreamReader sr = new StreamReader(fs))
             {
-                string errorMessage = "Json files are empty";
-                Console.WriteLine(errorMessage);
-                throw new Exception(errorMessage);
+                jsonStringWeights = sr.ReadToEnd();
             }
-            
-            List<JsonNeuron> jsonNeurons = JsonSerializer.Deserialize<List<JsonNeuron>>(jsonStringNeurons);
-            
-            List<JsonWeight> jsonWeightsOriginal = JsonSerializer.Deserialize<List<JsonWeight>>(jsonStringWeights);
-            List<JsonWeight> jsonWeightsBefore = new();
-            jsonWeightsBefore.AddRange(jsonWeightsOriginal);
-            List<JsonWeight> jsonWeightsAfter = new();
-            jsonWeightsAfter.AddRange(jsonWeightsOriginal);
+        }
 
-            List<Neuron> neurons = new();
-            Dictionary<JsonWeight, Neuron> jsonWeightsBeforeDictionary = new();
-            Dictionary<JsonWeight, Neuron> jsonWeightsAfterDictionary = new();
-            for (int i = 0; i < jsonNeurons.Count; i++)
+        if (string.IsNullOrEmpty(jsonStringNeurons) || string.IsNullOrEmpty(jsonStringWeights))
+        {
+            string errorMessage = "Json files are empty";
+            Console.WriteLine(errorMessage);
+            throw new Exception(errorMessage);
+        }
+
+        List<JsonNeuron> jsonNeurons = JsonSerializer.Deserialize<List<JsonNeuron>>(jsonStringNeurons);
+
+        List<JsonWeight> jsonWeightsOriginal = JsonSerializer.Deserialize<List<JsonWeight>>(jsonStringWeights);
+        List<JsonWeight> jsonWeightsBefore = new();
+        jsonWeightsBefore.AddRange(jsonWeightsOriginal);
+        List<JsonWeight> jsonWeightsAfter = new();
+        jsonWeightsAfter.AddRange(jsonWeightsOriginal);
+
+        List<Neuron> neurons = new();
+        Dictionary<JsonWeight, Neuron> jsonWeightsBeforeDictionary = new();
+        Dictionary<JsonWeight, Neuron> jsonWeightsAfterDictionary = new();
+        for (int i = 0; i < jsonNeurons.Count; i++)
+        {
+            neurons.Add(jsonNeurons[i].CreateNeuron());
+            List<Weight> weightsBefore = new();
+            List<Weight> weightsAfter = new();
+
+            for (int j = 0; j < jsonNeurons[i].IdsWeightsBefore.Count; j++)
             {
-                neurons.Add(jsonNeurons[i].CreateNeuron());
-                List<Weight> weightsBefore = new();
-                List<Weight> weightsAfter = new();
-
-                for (int j = 0; j < jsonNeurons[i].IdsWeightsBefore.Count; j++)
+                for (int k = 0; k < jsonWeightsBefore.Count; k++)
                 {
-                    for (int k = 0; k < jsonWeightsBefore.Count; k++)
+                    if (jsonWeightsBefore[k].IdJson == jsonNeurons[i].IdsWeightsBefore[j])
                     {
-                        if (jsonWeightsBefore[k].IdJson == jsonNeurons[i].IdsWeightsBefore[j])
+                        if (jsonWeightsAfterDictionary.ContainsKey(jsonWeightsBefore[k]))
                         {
-                            if (jsonWeightsAfterDictionary.ContainsKey(jsonWeightsBefore[k]))
-                            {
-                                weightsBefore.Add(jsonWeightsBefore[k].CreateWeight(jsonWeightsAfterDictionary[jsonWeightsBefore[k]], neurons[i]));
-                                jsonWeightsAfterDictionary.Remove(jsonWeightsBefore[k]);
-                            }
-                            else
-                            {
-                                jsonWeightsBeforeDictionary.Add(jsonWeightsBefore[k], neurons[i]);
-                            }
-                            jsonWeightsBefore.RemoveAt(k);
-                            k--;
+                            weightsBefore.Add(jsonWeightsBefore[k]
+                                .CreateWeight(jsonWeightsAfterDictionary[jsonWeightsBefore[k]], neurons[i]));
+                            //jsonWeightsAfterDictionary.Remove(jsonWeightsBefore[k]);
                         }
+                        else
+                        {
+                            jsonWeightsBeforeDictionary.Add(jsonWeightsBefore[k], neurons[i]);
+                        }
+
+                        jsonWeightsBefore.RemoveAt(k);
+                        k--;
                     }
                 }
+            }
 
-                for (int j = 0; j < jsonNeurons[i].IdsWeightsAfter.Count; j++)
+            for (int j = 0; j < jsonNeurons[i].IdsWeightsAfter.Count; j++)
+            {
+                for (int k = 0; k < jsonWeightsAfter.Count; k++)
                 {
-                    for (int k = 0; k < jsonWeightsAfter.Count; k++)
+                    if (jsonWeightsAfter[k].IdJson == jsonNeurons[i].IdsWeightsAfter[j])
                     {
-                        if (jsonWeightsAfter[k].IdJson == jsonNeurons[i].IdsWeightsAfter[j])
+                        if (jsonWeightsBeforeDictionary.ContainsKey(jsonWeightsAfter[k]))
+                        {
+                            weightsAfter.Add(jsonWeightsAfter[k]
+                                .CreateWeight(jsonWeightsBeforeDictionary[jsonWeightsAfter[k]], neurons[i]));
+                            //jsonWeightsBeforeDictionary.Remove(jsonWeightsBefore[k]);
+                        }
+                        else
                         {
                             jsonWeightsAfterDictionary.Add(jsonWeightsAfter[k], neurons[i]);
-                            jsonWeightsAfter.RemoveAt(k);
-                            k--;
                         }
-                        
-                        if (jsonWeightsAfter[k].IdJson == jsonNeurons[i].IdsWeightsAfter[j])
-                        {
-                            if (jsonWeightsBeforeDictionary.ContainsKey(jsonWeightsAfter[k]))
-                            {
-                                weightsAfter.Add(jsonWeightsAfter[k].CreateWeight(jsonWeightsBeforeDictionary[jsonWeightsAfter[k]], neurons[i]));
-                                jsonWeightsBeforeDictionary.Remove(jsonWeightsBefore[k]);
-                            }
-                            else
-                            {
-                                jsonWeightsAfterDictionary.Add(jsonWeightsAfter[k], neurons[i]);
-                            }
-                            jsonWeightsAfter.RemoveAt(k);
-                            k--;
-                        }
+
+                        jsonWeightsAfter.RemoveAt(k);
+                        k--;
                     }
-                }
-                neurons[^1].WeightsBefore = weightsBefore;
-                neurons[^1].WeightsAfter = weightsAfter;
-            }
-            
-            Dictionary<Neuron, JsonWeight> jsonWeightsBeforeDictionaryRe = new();
-            Dictionary<Neuron, JsonWeight> jsonWeightsAfterDictionaryRe = new();
-            for (int i = 0; i < jsonWeightsOriginal.Count; i++)
-            {
-                if (jsonWeightsBeforeDictionary.ContainsKey(jsonWeightsOriginal[i]))
-                {
-                    jsonWeightsBeforeDictionaryRe.Add(jsonWeightsBeforeDictionary[jsonWeightsOriginal[i]], jsonWeightsOriginal[i]);
-                    jsonWeightsBeforeDictionary.Remove(jsonWeightsOriginal[i]);
-                }else if(jsonWeightsAfterDictionary.ContainsKey(jsonWeightsOriginal[i]))
-                {
-                    jsonWeightsAfterDictionaryRe.Add(jsonWeightsAfterDictionary[jsonWeightsOriginal[i]], jsonWeightsOriginal[i]);
-                    jsonWeightsAfterDictionary.Remove(jsonWeightsOriginal[i]);
                 }
             }
 
-            for (int i = 0; i < neurons.Count; i++)
+            neurons[^1].WeightsBefore = weightsBefore;
+            neurons[^1].WeightsAfter = weightsAfter;
+        }
+
+        Dictionary<Neuron, JsonWeight> jsonWeightsBeforeDictionaryRe = new();
+        Dictionary<Neuron, JsonWeight> jsonWeightsAfterDictionaryRe = new();
+        for (int i = 0; i < jsonWeightsOriginal.Count; i++)
+        {
+            if (jsonWeightsBeforeDictionary.ContainsKey(jsonWeightsOriginal[i]))
             {
-                if (jsonWeightsBeforeDictionaryRe.ContainsKey(neurons[i]))
+                jsonWeightsBeforeDictionaryRe.Add(jsonWeightsBeforeDictionary[jsonWeightsOriginal[i]],
+                    jsonWeightsOriginal[i]);
+                jsonWeightsBeforeDictionary.Remove(jsonWeightsOriginal[i]);
+            }
+            else if (jsonWeightsAfterDictionary.ContainsKey(jsonWeightsOriginal[i]))
+            {
+                jsonWeightsAfterDictionaryRe.Add(jsonWeightsAfterDictionary[jsonWeightsOriginal[i]],
+                    jsonWeightsOriginal[i]);
+                jsonWeightsAfterDictionary.Remove(jsonWeightsOriginal[i]);
+            }
+        }
+
+        for (int i = 0; i < neurons.Count; i++)
+        {
+            if (jsonWeightsAfterDictionaryRe.ContainsKey(neurons[i]))
+            {
+                for (int j = 0; j < neurons.Count; j++)
                 {
-                    for (int j = 0; j < neurons[i].WeightsBefore.Count; j++)
+                    if (neurons[j].Id == jsonWeightsAfterDictionaryRe[neurons[i]].IdNeuronAfter)
                     {
-                        if (jsonWeightsAfterDictionaryRe.ContainsKey(neurons[j]) && jsonWeightsAfterDictionaryRe[neurons[j]].IdNeuronBefore == neurons[i].Id)
-                        {
-                            Weight newWeight = jsonWeightsBeforeDictionaryRe[neurons[i]].CreateWeight(neurons[i], neurons[j]);
-                            neurons[i].WeightsBefore.Add(newWeight);
-                            neurons[j].WeightsAfter.Add(newWeight);
-                            jsonWeightsBeforeDictionaryRe.Remove(neurons[i]);
-                            jsonWeightsAfterDictionaryRe.Remove(neurons[j]);
-                        }
+                        Weight newWeight = jsonWeightsAfterDictionaryRe[neurons[i]]
+                            .CreateWeight(neurons[i], neurons[j]);
+                        neurons[i].WeightsAfter.Add(newWeight);
+                        //neurons[j].WeightsAfter.Add(newWeight);
+                        jsonWeightsAfterDictionaryRe.Remove(neurons[i]);
                     }
-
                 }
             }
-            
-            return neurons;
+            else if (jsonWeightsBeforeDictionaryRe.ContainsKey(neurons[i]))
+            {
+                for (int j = 0; j < neurons.Count; j++)
+                {
+                    if (neurons[j].Id == jsonWeightsBeforeDictionaryRe[neurons[i]].IdNeuronBefore)
+                    {
+                        Weight newWeight = jsonWeightsBeforeDictionaryRe[neurons[i]]
+                            .CreateWeight(neurons[j], neurons[i]);
+                        neurons[i].WeightsBefore.Add(newWeight);
+                        //neurons[j].WeightsAfter.Add(newWeight);
+                        jsonWeightsBeforeDictionaryRe.Remove(neurons[i]);
+                    }
+                }
+            }
         }
 
-        public static Dictionary<string, double> LoadDictionary(string path)
+        return neurons;
+    }
+
+    public static List<Dictionary<string, double>> LoadDictionary(string path)
+    {
+        path = Settings.FolderNetwork + path;
+
+        string jsonString;
+        using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read))
         {
-            path = Settings.FolderNetwork + path;
-            
-            string jsonString;
-            using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read))
+            using (StreamReader sr = new StreamReader(fs))
             {
-                using (StreamReader sr = new StreamReader(fs))
-                {
-                    jsonString = sr.ReadToEnd();
-                }
+                jsonString = sr.ReadToEnd();
             }
-            
-            if (string.IsNullOrEmpty(jsonString))
-            {
-                string errorMessage = "Json file is empty";
-                Console.WriteLine(errorMessage);
-                throw new Exception(errorMessage);
-            }
-            
-            return JsonSerializer.Deserialize<Dictionary<string, double>>(jsonString);
         }
 
-        public static void SaveDictionary(Dictionary<string, double> dictionary, string path)
+        if (string.IsNullOrEmpty(jsonString))
         {
-            path = Settings.FolderNetwork + path;
-            
-            string jsonString = JsonSerializer.Serialize(dictionary);
-            using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            string errorMessage = "Json file is empty";
+            Console.WriteLine(errorMessage);
+            throw new Exception(errorMessage);
+        }
+
+        return JsonSerializer.Deserialize<List<Dictionary<string, double>>>(jsonString);
+    }
+
+    public static void SaveDictionary(List<Dictionary<string, double>> dictionary, string path)
+    {
+        path = Settings.FolderNetwork + path;
+
+        string jsonString = JsonSerializer.Serialize(dictionary, Settings.FilePrintOptions);
+        using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+        {
+            using (StreamWriter sw = new StreamWriter(fs))
             {
-                using (StreamWriter sw = new StreamWriter(fs))
-                {
-                    sw.Write(jsonString);
-                }
+                sw.Write(jsonString);
             }
         }
     }
+}
 
-    internal class JsonNeuron
+internal class JsonNeuron
+{
+    public string Id { get; set; }
+
+    public double Bias { get; set; }
+
+    public int Layer { get; set; }
+
+    public List<string> IdsWeightsBefore { get; set; }
+
+    public List<string> IdsWeightsAfter { get; set; }
+
+    public JsonNeuron(Neuron neuron, List<JsonWeight> weightsBefore, List<JsonWeight> weightsAfter)
     {
-        public string Id { get; set; }
+        Id = neuron.Id;
+        Bias = neuron.Bias;
+        Layer = neuron.Layer;
 
-        public double Bias { get; set; }
-        
-        public int Layer { get; set; }
-        
-        public List<string> IdsWeightsBefore { get; set; }
-        
-        public List<string> IdsWeightsAfter { get; set; }
-
-        public JsonNeuron(Neuron neuron, List<JsonWeight> weightsBefore, List<JsonWeight> weightsAfter)
+        IdsWeightsBefore = new List<string>();
+        for (int i = 0; i < weightsBefore.Count; i++)
         {
-            Id = neuron.Id;
-            Bias = neuron.Bias;
-            Layer = neuron.Layer;
-            
-            IdsWeightsBefore = new List<string>();
-            for (int i = 0; i < weightsBefore.Count; i++)
-            {
-                IdsWeightsBefore.Add(weightsBefore[i].IdJson);
-            }
-
-            IdsWeightsAfter = new List<string>();
-            for (int i = 0; i < weightsAfter.Count; i++)
-            {
-                IdsWeightsAfter.Add(weightsAfter[i].IdJson);
-            }
+            IdsWeightsBefore.Add(weightsBefore[i].IdJson);
         }
 
-        public Neuron CreateNeuron()
+        IdsWeightsAfter = new List<string>();
+        for (int i = 0; i < weightsAfter.Count; i++)
         {
-            return new Neuron(Id, Bias); //Weights must be set later
+            IdsWeightsAfter.Add(weightsAfter[i].IdJson);
         }
     }
-    
-    internal class JsonWeight
+
+    [JsonConstructor]
+    public JsonNeuron(string id, double bias, int layer, List<string> idsWeightsBefore, List<string> idsWeightsAfter)
     {
-        public string IdJson { get; } = Guid.NewGuid().ToString();
-        
-        public string IdNeuronBefore { get; private set; }
-        
-        public string IdNeuronAfter { get; private set; }
-        
-        public double ValueWeight { get; private set; }
+        Id = id;
+        Bias = bias;
+        Layer = layer;
+        IdsWeightsBefore = idsWeightsBefore;
+        IdsWeightsAfter = idsWeightsAfter;
+    }
 
-        public JsonWeight(Weight weight)
-        {
-            ValueWeight = weight.Value;
-            IdNeuronBefore = weight.NeuronBefore.Id;
-            IdNeuronAfter = weight.NeuronAfter.Id;
-        }
+    public Neuron CreateNeuron()
+    {
+        return new Neuron(Id, Bias, Layer); //Weights must be set later
+    }
+}
 
-        public Weight CreateWeight(Neuron neuronBefore, Neuron neuronAfter)
-        {
-            return new Weight(ValueWeight, neuronBefore, neuronAfter);
-        }
+internal class JsonWeight
+{
+    public string IdJson { get; private set; }
+
+    public string IdNeuronBefore { get; private set; }
+
+    public string IdNeuronAfter { get; private set; }
+
+    public double ValueWeight { get; private set; }
+
+    public JsonWeight(Weight weight)
+    {
+        IdJson = weight.NeuronBefore.Id + weight.NeuronAfter.Id + "-" + Guid.NewGuid().ToString();
+        ValueWeight = weight.Value;
+        IdNeuronBefore = weight.NeuronBefore.Id;
+        IdNeuronAfter = weight.NeuronAfter.Id;
+    }
+
+    [JsonConstructor]
+    public JsonWeight(string idJson, string idNeuronBefore, string idNeuronAfter, double valueWeight)
+    {
+        IdJson = idJson;
+        IdNeuronBefore = idNeuronBefore;
+        IdNeuronAfter = idNeuronAfter;
+        ValueWeight = valueWeight;
+    }
+
+    public Weight CreateWeight(Neuron neuronBefore, Neuron neuronAfter)
+    {
+        return new Weight(ValueWeight, neuronBefore, neuronAfter);
     }
 }

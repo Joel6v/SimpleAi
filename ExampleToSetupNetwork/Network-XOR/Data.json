@@ -1,0 +1,18 @@
+[
+  {
+    "input1": 1,
+    "input2": 0
+  },
+  {
+    "input1": 0,
+    "input2": 1
+  },
+  {
+    "input1": 0,
+    "input2": 0
+  },
+  {
+    "input1": 1,
+    "input2": 1
+  }
+]

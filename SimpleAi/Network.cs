@@ -1,4 +1,6 @@
-﻿namespace SimpleAi;
+﻿using SimpleAi.File;
+
+namespace SimpleAi;
 
 public class Network
 {
@@ -26,7 +28,7 @@ public class Network
         {
             if (Neurons.Count <= neurons[i].Layer)
             {
-                for (int j = 0; j < neurons[i].Layer - Neurons.Count - 1; j++)
+                for (int j = 0; j < neurons[i].Layer - Neurons.Count + 1; j++)
                 {
                     Neurons.Add(new List<Neuron>());
                 }
@@ -61,13 +63,13 @@ public class Network
                 if (outputNeurons[j].Id.Equals(target.ElementAt(i).Key))
                 {
                     outputNeurons[j].Backpropagation(Settings.LearningRate, target.ElementAt(i).Value);
-                    outputNeurons.RemoveAt(j);
-                    j--;
+                    // outputNeurons.RemoveAt(j);
+                    // j--;
                 }
             }
         }
         
-        for (int i = Neurons.Count - 2; i >= 1; i++)
+        for (int i = Neurons.Count - 2; i >= 0; i--)
         {
             for (int j = 0; j < Neurons[i].Count; j++)
             {
@@ -85,17 +87,17 @@ public class Network
     
     private void RunNetworkForwardProp(Dictionary<string, double> data)
     {
-        List<Neuron> inputNeurons = Neurons[0];
+        List<Neuron> inputNeurons = Neurons[0]; //only the first layer because otherwise it would be overridden
         
-        for (int i = 0; i < data.Count; i++) //only the first layer because otherwise it would be overridden
+        for (int i = 0; i < data.Count; i++) 
         {
-            for (int j = 0; j < inputNeurons.Count; j++)
+            for (int j = 0; j < inputNeurons.Count; j++) 
             {
                 if (inputNeurons[j].Id.Equals(data.ElementAt(i).Key))
                 {
                     inputNeurons[j].Value = data.ElementAt(i).Value;
-                    inputNeurons.RemoveAt(j);
-                    j--;
+                    // inputNeurons.RemoveAt(j);
+                    // j--;
                 }
             }
         }

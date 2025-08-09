@@ -2,22 +2,29 @@
   {
     "Id": "input1",
     "Bias": 0.5,
-    "Layer": 1,
+    "Layer": 0,
     "IdsWeightsBefore": [],
-    "IdsWeightsAfter": ["a1b2c3d4-e5f6-7890-abcd-ef1234567890"]
+    "IdsWeightsAfter": [
+      "input1output1653e8fc7-9379-4f82-80a9-561f822e5061"
+    ]
   },
   {
     "Id": "input2",
     "Bias": -0.5,
-    "Layer": 1,
-    "IdsWeightsBefore": ["b2c3d4e5-f678-90ab-cdef-234567890abc"],
-    "IdsWeightsAfter": []
+    "Layer": 0,
+    "IdsWeightsBefore": [],
+    "IdsWeightsAfter": [
+      "input2output1ba432953-0877-4cf9-969f-eba896fe34c8"
+    ]
   },
   {
     "Id": "output1",
-    "Bias": 0.5,
-    "Layer": 2,
-    "IdsWeightsBefore": ["a1b2c3d4-e5f6-7890-abcd-ef1234567890","b2c3d4e5-f678-90ab-cdef-234567890abc"],
+    "Bias": 0.4872054001983263,
+    "Layer": 1,
+    "IdsWeightsBefore": [
+      "input1output1a9066c3c-c89e-4f85-bb49-a7ccad9c001f",
+      "input2output18483612b-b394-4758-96ee-5c6e031d3056"
+    ],
     "IdsWeightsAfter": []
   }
 ]

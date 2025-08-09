@@ -1,4 +1,4 @@
-﻿using System.Net.NetworkInformation;
+﻿using SimpleAi.File;
 
 namespace SimpleAi
 {
@@ -6,10 +6,8 @@ namespace SimpleAi
     {
         public static void Main(string[] args)
         {
-            //Run run = new Run();
-            //run.RunTrainingManager();
-
-            Console.ReadKey();
+            Run.RunTrainingManager();
+            
         }
     }
 
@@ -17,29 +15,32 @@ namespace SimpleAi
     {
         public static void RunTrainingManager()
         {
-            Dictionary<string, double> data = FileHandler.LoadDictionary(Settings.FileData);
-            Dictionary<string, double> target = FileHandler.LoadDictionary(Settings.FileTarget);
+            List<Dictionary<string, double>> data = FileHandler.LoadDictionary(Settings.FileData);
+            List<Dictionary<string, double>> target = FileHandler.LoadDictionary(Settings.FileTarget);
             List<Neuron> neurons = FileHandler.LoadNetwork();
             
             Network network = new Network(neurons);
+            List<Dictionary<string, double>> result = new();
             for (int i = 0; i < data.Count; i++)
             {
-                FileHandler.SaveDictionary(network.RunTraining(data, target), Settings.FileResult);
+                result.Add(network.RunTraining(data[i], target[i]));
             }
-            
-            FileHandler.SaveNetwork(network);
+            FileHandler.SaveDictionary(result, Settings.FileResult);
+            //FileHandler.SaveNetwork(network);
         }
 
         public static void RunManager()
         {
-            Dictionary<string, double> data = FileHandler.LoadDictionary(Settings.FileData);
+            List<Dictionary<string, double>> data = FileHandler.LoadDictionary(Settings.FileData);
             List<Neuron> neurons = FileHandler.LoadNetwork();
             
             Network network = new Network(neurons);
+            List<Dictionary<string, double>> result = new();
             for (int i = 0; i < data.Count; i++)
             {
-                FileHandler.SaveDictionary(network.Run(data), Settings.FileResult);
+                result.Add(network.Run(data[i]));
             }
+            FileHandler.SaveDictionary(result, Settings.FileResult);
         }
     }
 }

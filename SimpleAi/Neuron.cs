@@ -16,22 +16,25 @@ public class Neuron
     
     public int Layer { get; set; }
     
-    public Neuron(string id, double bias)
+    public Neuron(string id, double bias, int layer)
     {
         Id = id;
         Bias = bias;
+        Layer = layer;
     }
 
-    public Neuron(string id)
+    public Neuron(string id, int layer)
     {
         Id = id;
         Bias = new Random().NextDouble() * 2 - 1;
+        Layer = layer;
     }
 
-    public Neuron()
+    public Neuron(int layer)
     {
         Id = Guid.NewGuid().ToString();
         Bias = new Random().NextDouble() * 2 - 1;
+        Layer = layer;
     }
 
     public void SetWeights(List<Weight> weightsBefore, List<Weight> weightsAfter)

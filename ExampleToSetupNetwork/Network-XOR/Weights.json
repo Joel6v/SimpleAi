@@ -1,12 +1,12 @@
 [
   {
-    "IdJson": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "IdJson": "input1output1b87f9a5e-7ae8-4cc7-a852-755a110a42aa",
     "IdNeuronBefore": "input1",
     "IdNeuronAfter": "output1",
     "ValueWeight": 0.8
   },
   {
-    "IdJson": "b2c3d4e5-f678-90ab-cdef-234567890abc",
+    "IdJson": "input2output198b0069f-c9d5-40d9-a59e-49d58207e42c",
     "IdNeuronBefore": "input2",
     "IdNeuronAfter": "output1",
     "ValueWeight": -0.6
