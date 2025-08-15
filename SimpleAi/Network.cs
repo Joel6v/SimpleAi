@@ -62,7 +62,7 @@ public class Network
             {
                 if (outputNeurons[j].Id.Equals(target.ElementAt(i).Key))
                 {
-                    outputNeurons[j].Backpropagation(Settings.LearningRate, target.ElementAt(i).Value);
+                    outputNeurons[j].Backpropagation(Settings.LearningRate, target.ElementAt(i).Value, 0);
                     // outputNeurons.RemoveAt(j);
                     // j--;
                 }
@@ -78,8 +78,14 @@ public class Network
         }
         
         Dictionary<string, double> result = new Dictionary<string, double>();
+        double valueAllNeurons = 0;
         for (int i = 0; i < Neurons[^1].Count; i++)
         {
+            valueAllNeurons += Neurons[^1][i].Value;
+        }
+        for (int i = 0; i < Neurons[^1].Count; i++)
+        {
+            Neurons[^1][i].CalculateOutput(valueAllNeurons);
             result.Add(Neurons[^1][i].Id, Neurons[^1][i].Value);
         }
         return result;

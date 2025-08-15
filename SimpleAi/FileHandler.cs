@@ -275,6 +275,8 @@ internal class JsonNeuron
     public double Bias { get; set; }
 
     public int Layer { get; set; }
+    
+    public int ActivationFunction { get; set; }
 
     public List<string> IdsWeightsBefore { get; set; }
 
@@ -285,6 +287,7 @@ internal class JsonNeuron
         Id = neuron.Id;
         Bias = neuron.Bias;
         Layer = neuron.Layer;
+        ActivationFunction = (int)neuron.ActivationFunction;
 
         IdsWeightsBefore = new List<string>();
         for (int i = 0; i < weightsBefore.Count; i++)
@@ -300,18 +303,19 @@ internal class JsonNeuron
     }
 
     [JsonConstructor]
-    public JsonNeuron(string id, double bias, int layer, List<string> idsWeightsBefore, List<string> idsWeightsAfter)
+    public JsonNeuron(string id, double bias, int layer, int activationFunction, List<string> idsWeightsBefore, List<string> idsWeightsAfter)
     {
         Id = id;
         Bias = bias;
         Layer = layer;
+        ActivationFunction = activationFunction;
         IdsWeightsBefore = idsWeightsBefore;
         IdsWeightsAfter = idsWeightsAfter;
     }
 
     public Neuron CreateNeuron()
     {
-        return new Neuron(Id, Bias, Layer); //Weights must be set later
+        return new Neuron(Id, Bias, Layer, ActivationFunction); //Weights must be set later
     }
 }
 

@@ -9,6 +9,8 @@ public class Neuron
     public double Error { get; private set; } = 0;
     
     public double Bias { get; private set; }
+    
+    public ActivationFunction ActivationFunction { get; set; }
 
     public List<Weight> WeightsBefore { get; set; } = new List<Weight>();
     
@@ -16,11 +18,12 @@ public class Neuron
     
     public int Layer { get; set; }
     
-    public Neuron(string id, double bias, int layer)
+    public Neuron(string id, double bias, int layer, int activationFunction)
     {
         Id = id;
         Bias = bias;
         Layer = layer;
+        ActivationFunction = (ActivationFunction)activationFunction;
     }
 
     public Neuron(string id, int layer)
@@ -48,10 +51,25 @@ public class Neuron
     {
         Value = Math.Max(0, Value);
     }
+
+    private void Linear()
+    {
+        //Nothing to do here
+    }
     
     private void Sigmoid() //Is not so fast as the Relu, but it is more accurate.
     {
         Value = 1 / (1 + Math.Exp(-Value));
+    }
+    
+    private void Tanh()
+    {
+        Value = Math.Tanh(Value);
+    }
+
+    private void SoftMax(double valueAllNeurons)
+    {
+        Value = Math.Exp(Value) / Math.Exp(valueAllNeurons);
     }
 
     public void CalculateOutput()
@@ -61,7 +79,27 @@ public class Neuron
         {
             Value += WeightsBefore[i].Value * WeightsBefore[i].NeuronBefore.Value;
         }
-        Sigmoid();
+
+        switch (ActivationFunction)
+        {
+            case ActivationFunction.Linear:
+                Linear();
+                break;
+            case ActivationFunction.ReLU:
+                Relu();
+                break;
+            case ActivationFunction.Sigmoid:
+                Sigmoid();
+                break;
+            case ActivationFunction.Tanh:
+                Tanh();
+                break;
+        }
+    }
+
+    public void CalculateOutput(double valueAllNeurons)
+    {
+        SoftMax(valueAllNeurons);
     }
 
     private void CalculateNewWeightsBias(double learningRate)
@@ -93,9 +131,19 @@ public class Neuron
     /// Calculates the error of the value with the target value
     /// </summary>
     /// <param name="targetValue"></param>
-    public void Backpropagation(double learningRate, double targetValue)
+    public void Backpropagation(double learningRate, double targetValue, int function)
     {
         Error = targetValue - Value;
+
+        switch (function)
+        {
+            case 0:
+                Error = -1 * Math.Log(targetValue - Value);
+                break;
+            case 1:
+                Error = (targetValue - Value)  * (targetValue - Value);
+                break;
+        }
         
         CalculateNewWeightsBias(learningRate);
     }

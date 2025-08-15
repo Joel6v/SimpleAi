@@ -5,10 +5,6 @@ namespace SimpleAi.File;
 public static class Settings
 {
     public static double LearningRate = 0.1f;
-    /// <summary>
-    /// A round is a single intervention through the process from a data set.
-    /// </summary>
-    public static int Rounds = 80;
 
     public static string FolderNetwork = "F:\\Technik\\Repos\\SimpleAi\\ExampleToSetupNetwork\\Network-XOR\\";//AppContext.BaseDirectory + @"\Network\";
 
@@ -38,8 +34,6 @@ public static class Settings
         Console.WriteLine("-Settings-");
         Console.Write("Learning Rate: ");
         LearningRate = double.Parse(Console.ReadLine());
-        Console.Write("Rounds: ");
-        Rounds = int.Parse(Console.ReadLine());
         Console.Write($"Folder Network: ");
         FolderNetwork = Console.ReadLine();
 
