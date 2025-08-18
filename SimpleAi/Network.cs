@@ -81,7 +81,7 @@ public class Network
         double valueAllNeurons = 0;
         for (int i = 0; i < Neurons[^1].Count; i++)
         {
-            valueAllNeurons += Neurons[^1][i].Value;
+            valueAllNeurons += Math.Exp(Neurons[^1][i].Value);
         }
         for (int i = 0; i < Neurons[^1].Count; i++)
         {

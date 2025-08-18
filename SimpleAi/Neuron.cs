@@ -102,6 +102,10 @@ public class Neuron
         SoftMax(valueAllNeurons);
     }
 
+    /// <summary>
+    /// Here is the most important part of the backpropagation algorithm
+    /// </summary>
+    /// <param name="learningRate"></param>
     private void CalculateNewWeightsBias(double learningRate)
     {
         double gradient = Error * learningRate * Value * (1 - Value); //The biggest result at Value = 0.5
